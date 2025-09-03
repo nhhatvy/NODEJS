@@ -1,3 +1,4 @@
+const { get } = require("express/lib/response");
 const db = require("../models/index");
 const bcrypt = require("bcryptjs");
 
@@ -19,13 +20,7 @@ let hashUserPassword = async (password) => {
 let createNewUser = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      // Nếu password gửi lên là mảng thì lấy phần tử đầu tiên
-      const rawPassword = Array.isArray(data.password)
-        ? data.password[0]
-        : data.password;
-
       const hashedPassword = await hashUserPassword(rawPassword);
-
       await db.User.create({
         email: data.email,
         password: hashedPassword,
@@ -39,12 +34,68 @@ let createNewUser = async (data) => {
 
       resolve(" User created successfully!");
     } catch (e) {
-      console.error("Error in createNewUser:", e);
       reject(e); // reject để Promise hoạt động đúng
+    }
+  });
+};
+
+let getALLUser = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let users = await db.User.findAll({
+        raw: true,
+      });
+      resolve(users);
+    } catch (e) {
+      reject(e); // reject để Promise hoạt động đúng
+    }
+  });
+};
+
+let getUserInfoById = (userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let user = await db.User.findOne({
+        where: { id: userId },
+        raw: true,
+      });
+      if (user) {
+        resolve(user);
+      } else {
+        resolve({});
+      }
+    } catch (e) {
+      reject(e); // reject để Promise hoạt động đúng
+    }
+  });
+};
+
+let updateUserData = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let user = await db.User.findOne({
+        where: { id: data.id },
+      });
+      if (user) {
+        user.firstName = data.firstName;
+        user.lastName = data.lastName;
+        user.address = data.address;
+        await user.save();
+
+        let allUsers = await db.User.findAll();
+        resolve(allUsers); // trả về user sau khi update
+      } else {
+        resolve({}); // không tìm thấy user
+      }
+    } catch (e) {
+      reject(e); // nhớ reject nếu có lỗi
     }
   });
 };
 
 module.exports = {
   createNewUser: createNewUser,
+  getAllUser: getALLUser,
+  getUserInfoById: getUserInfoById,
+  updateUserData: updateUserData,
 };
