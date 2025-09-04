@@ -1,6 +1,7 @@
 const { get } = require("express/lib/response");
 const db = require("../models/index");
 const bcrypt = require("bcryptjs");
+const res = require("express/lib/response");
 
 const saltRounds = 10;
 
@@ -20,6 +21,10 @@ let hashUserPassword = async (password) => {
 let createNewUser = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const rawPassword = Array.isArray(data.password)
+        ? data.password[0]
+        : data.password;
+
       const hashedPassword = await hashUserPassword(rawPassword);
       await db.User.create({
         email: data.email,
@@ -38,7 +43,6 @@ let createNewUser = async (data) => {
     }
   });
 };
-
 let getALLUser = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -92,10 +96,26 @@ let updateUserData = (data) => {
     }
   });
 };
+let deleteUserById = (userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let user = await db.User.findOne({
+        where: { id: userId },
+      });
+      if (user) {
+        await user.destroy();
+      }
+      resolve(); // không tìm thấy user
+    } catch (e) {
+      reject(e); // nhớ reject nếu có lỗi
+    }
+  });
+};
 
 module.exports = {
   createNewUser: createNewUser,
   getAllUser: getALLUser,
   getUserInfoById: getUserInfoById,
   updateUserData: updateUserData,
+  deleteUserById: deleteUserById,
 };
