@@ -122,9 +122,10 @@ let CreateNewUser = (data) => {
           lastName: data.lastName,
           address: data.address,
           phoneNumber: data.phoneNumber,
-          gender: data.gender ,
+          gender: data.gender,
           roleId: data.roleId,
           positionId: data.positionId,
+          image: data.avatar,
         });
       }
 
@@ -182,7 +183,9 @@ let updateUserData = (data) => {
         user.positionId = data.positionId;
         user.gender = data.gender;
         user.phoneNumber = data.phoneNumber;
-
+        if (data.avatar) {
+          user.image = data.avatar;
+        }
 
         await user.save();
         // await db.User.save({
